@@ -77,7 +77,7 @@ async def _get_textsize_and_lines(text, font_path, original_size, dims):
 			curr_length = font.getlength(text)
 			lines = curr_length / width
 	else:
-		max_size = int(round(size / font.getlenght(text) * width, 0))
+		max_size = int(round(size / font.getlength(text) * width, 0))
 		size = min(height, max_size)
 	# ? this is a magic number and to be honest I don't know where it came from
 	# ? just circumstancial evidence

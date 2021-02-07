@@ -2,15 +2,19 @@ import discord
 from discord.ext import commands
 from os import getenv, remove
 # scripts
-from image_utils import add_text_to_image
+from bot_utils import add_text_to_image
 
 class Commands(commands.Cog):
-	@commands.command()
+	@commands.command(
+		help="menciona a los jugadores del lol"
+		)
 	async def lol(self, ctx):
 		img = discord.File(getenv("IMG_SUMMON"))
 		await ctx.send(getenv("MENTION_LOL"), file=img)
 
-	@commands.command()
+	@commands.command(
+		help="coge la foto de simon y modifica el texto a el parametro"
+		)
 	async def simon(self, ctx, *args):
 	
 		coords = (365, 1350)
