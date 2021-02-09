@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 from os import getenv, remove
 # scripts
-from __command_utils import add_text_to_image
+from cogs.__command_utils import add_text_to_image
 
 
 def setup(bot):

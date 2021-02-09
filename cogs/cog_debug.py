@@ -1,4 +1,17 @@
 from discord.ext import commands
+import log.logger as log
+
+#! I didn't find a way of doing this
+_DEBUG = False
+	
+def debug():
+	async def wrapper(ctx):
+		global _DEBUG
+		print(_DEBUG)
+		if _DEBUG != True:
+			log.warn("Not in debug mode")
+		return _DEBUG
+	return commands.check(wrapper)
 
 #! DEBUG STUFF
 # This Cog is used to manage extensions without stopping the bot
@@ -8,11 +21,21 @@ class Debug(commands.Cog):
 		self.bot = bot
 		self.extension_list = extension_list
 
+	
+	@commands.command(hidden=True)
+	@commands.is_owner()
+	async def _enabledebug(self, ctx, arg : bool):
+		global _DEBUG
+		_DEBUG = bool(arg)
+		log.warn(f"DEBUG mode set to {_DEBUG}")
+
+
 	# Stops execution, not really needed now
 	@commands.command(hidden=True)
 	@commands.is_owner()
+	@debug()
 	async def _kill(self, ctx):
-		warn("The bot is logging out")
+		log.warn("The bot is logging out")
 		await self.bot.close()
 
 	# loads a new extension in the bot, a extension is a py module with a 
@@ -20,45 +43,28 @@ class Debug(commands.Cog):
 	# configure what is done with the extension
 	@commands.command(hidden=True)
 	@commands.is_owner()
+	@debug()
 	async def _loadextension(self, ctx, module : str):
 		self.bot.load_extension(module)
 		if module not in self.extension_list:
 			self.extension_list.append(module)
-		notice(f"Loaded module {module}")
+		log.notice(f"Loaded module {module}")
 
 	# unloads an extension from the bot
 	# if the extension is not in the bot the stack trace is something that exists
 	@commands.command(hidden=True)
 	@commands.is_owner()
+	@debug()
 	async def _unloadextension(self, ctx, module : str):
 		self.bot.unload_extension(module)
-		notice(f"Unloaded module {module}")
+		log.notice(f"Unloaded module {module}")
+
 
 	# reloads all the extensions
 	@commands.command(hidden=True)
 	@commands.is_owner()
+	@debug()
 	async def _reload(self, ctx):
 		for s in self.extension_list:
 			self.bot.reload_extension(s)
-			notice(f"Reloaded module {s}")
-
-# TODO: move this to a log module or something like that
-def notice(msg):
-	print(f"{bcolors.OKCYAN}[NOTICE]: {msg}{bcolors.ENDC}")
-
-def warn(msg):
-	print(f"{bcolors.WARN}[WARN]: {msg}{bcolors.ENDC}")
-
-def error(msg):
-	print(f"{bcolors.FAIL}[ERROR]: {msg}{bcolors.ENDC}")
-	
-class bcolors:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKCYAN = '\033[96m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
+			log.notice(f"Reloaded module {s}")
