@@ -4,13 +4,18 @@ from os import getenv, remove
 # scripts
 from bot_utils import add_text_to_image
 
+
+def setup(bot):
+	bot.add_cog(Commands())
+
+
 class Commands(commands.Cog):
 	@commands.command(
 		help="menciona a los jugadores del lol"
 		)
 	async def lol(self, ctx):
 		img = discord.File(getenv("IMG_SUMMON"))
-		await ctx.send(getenv("MENTION_LOL"), file=img)
+		await ctx.send(getenv("MENTION_LOL"), file=img) 
 
 	@commands.command(
 		help="coge la foto de simon y modifica el texto a el parametro"
