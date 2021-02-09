@@ -12,10 +12,13 @@ async def add_text_to_image(text, img_path, xy, dims, out_name="res.jpg", textsi
 	font_path = getenv("FONT")
 	font = ImageFont.truetype(font_path, textsize)
 
+	# get a better configuration of the text
 	textsize, lines = await _get_textsize_and_lines(text, font_path, textsize, dims)
 	font = ImageFont.truetype(font_path, textsize)
 
-	xy = (xy[0], _get_centered_dims(xy[1], dims[1], len(lines), textsize))
+	# Centering of the tet, just in vertical way
+	y_centered = _get_centered_dims(xy[1], dims[1], len(lines), textsize)
+	xy = (xy[0], y_centered)
 	
 	for line in lines:
 		img_edit.text(xy, line, font=font, fill="#000000")
