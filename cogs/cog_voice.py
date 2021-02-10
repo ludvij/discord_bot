@@ -5,16 +5,20 @@ import log.logger as log
 # this Cog will handle the radio stuff
 def setup(bot):
 	log.warn(f"Loading extension: {__name__}")
+
 	bot.add_cog(GeneralVoice())
 	log.notice("Loaded cog: GeneralVoice",1)
 	bot.add_cog(RadioConnect())
 	log.notice("Loaded cog: RadioConnect",1)
+
 	log.confirm(f"Loaded extension: {__name__}")
 
 def teardown(bot):
 	log.warn(f"Unloading extension: {__name__}")
+
 	log.notice("Unloaded cog: GeneralVoice",1)
 	log.notice(f"Unloaded cog: RadioConnect",1)
+	
 	log.confirm(f"Unloaded extension: {__name__}")
 
 class RadioConnect(commands.Cog):
@@ -22,10 +26,13 @@ class RadioConnect(commands.Cog):
 		pass
 
 	# it's a mixture of join and play audio
-	@commands.command(aliases=["plr"], help="""
+	@commands.command(
+		aliases=["plr"], 
+		help="""
 		Se va a conectar a un mp3 o archivo de video valido en el internete.
 		El uso general es para escuchar la radio.
-	""")
+		"""
+	)
 	async def playradio(self, ctx, url = "http://radio3.rtveradio.cires21.com/radio3.mp3"):
 		voice = get(ctx.bot.voice_clients, guild=ctx.guild)
 		channel = ctx.author.voice.channel

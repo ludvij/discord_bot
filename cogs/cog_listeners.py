@@ -17,10 +17,12 @@ class Listeners(commands.Cog):
 	def __init__(self, bot):
 		self.bot = bot
 
+	# When the bot is ready to use it says hello in the command
 	@commands.Cog.listener()
 	async def on_ready(self):
 		log.log(f"Bot logged in as {self.bot.user.name}")
 
+	# Registers something each time a message is sent is the guild is in
 	@commands.Cog.listener()
 	async def on_message(self, message):
 		author = message.author
