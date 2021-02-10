@@ -44,4 +44,4 @@ class ExtensionManager(commands.Cog):
 		log.warn("Reloading:")
 		for s in ctx.bot.extensions:
 			ctx.bot.reload_extension(s)
-		ctx.send(f"Reload ended")
+		await ctx.send(f"Reload ended")

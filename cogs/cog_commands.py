@@ -3,7 +3,7 @@ from discord.ext import commands
 from os import getenv, remove
 import log.logger as log
 # scripts
-from cogs.__command_utils import add_text_to_image
+from scripts.utils import add_text_to_image
 
 
 def setup(bot):
@@ -29,6 +29,7 @@ class Commands(commands.Cog):
 	def __init__(self):
 		pass
 
+	# TODO: join these two commands
 	# command to delete a specified number of commands in a text channel
 	@commands.command(
 		name='bulkdelete',
@@ -41,18 +42,19 @@ class Commands(commands.Cog):
 	)
 	@commands.has_role('admin')
 	async def bulk_delete(self, ctx, n : int):
+		await ctx.message.delete()
+		
 		channel = ctx.channel
 		log.notice(f"Deleting {n} messages in [{channel.guild}:{channel}]")
 		# A better way of bulk deleting since the older one was quite slow
-		await channel.purge(limit=n+1)
+		await channel.purge(limit=n)
 		# async for message in channel.history(limit=n+1):
 		# 	log.notice(f"Deleted message: [{message.content}:{message.author}]", 1)
 		# 	await message.delete()
-		log.confirm("Finished bulk deletion")
+		log.confirm("Finished bulk deletion", 1)
 
-	# TODO: add command to delete all messages between 2 messages
 	# messages will be passed through id, so
-	# $bdel 93810310801 1230918301 will remove between 
+	# $bdelr 93810310801 1230918301 will remove between 
 	# 93810310801 and 1230918301
 	# restrictions: both messages should be in the same channel
 	# order should not matter
@@ -61,14 +63,28 @@ class Commands(commands.Cog):
 		name='bulkdeleterange',
 		aliases=['bulk_delete_range', 'bdelr'],
 		help="""
-		Borra todos los mensajes entre dos mensakes,
+		Borra todos los mensajes entre dos mensajes,
 		los mensajes se pasan por id y tiene que estar en 
 		el mismo canal.
 		Solo puede utilizarse por admins.
 		"""
 	)
-	async def bulk_delete_range(self, ctx, id1, id2):
-		pass
+	async def bulk_delete_range(self, ctx, id1 : int, id2 : int):
+		# delete command message
+		await ctx.message.delete()
+
+		m1 = await ctx.channel.fetch_message(id1)
+		m2 = await ctx.channel.fetch_message(id2)
+
+		# since the messages to delete must be between m1 and m2, that is
+		# after m1 before m2. So m1 must be the lower one
+		if m1.created_at > m2.created_at:
+			m1, m2 = m2, m1
+		
+		log.notice(f"removing from {m1.id}:{m1.created_at} to {m2.id}:{m2.created_at}")
+		await ctx.channel.purge(before=m2.created_at, after=m1.created_at)
+		log.confirm("Finished bulk deletion", 1)
+
 
 class MemeCommands(commands.Cog):
 	def __init__(self):
