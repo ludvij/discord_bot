@@ -3,11 +3,14 @@ from os import getenv
 import textwrap
 
 # Adds text to the image in a given rectangle
+# Asynchronous funcion since it can be some time depending on the text to add 
+# thanks to the length calculations
+# TODO: find a better way to calculate the length
 async def add_text_to_image(text, img_path, xy, dims, out_name="res.jpg", textsize=60):
 	img = Image.open(img_path)
 	img_edit = ImageDraw.Draw(img)
 	# uncomment to test the position of the rectangle
-	# ! img_edit.rectangle((xy[0], xy[1], xy[0] + dims[0], xy[1] + dims[1]), outline="#000000")
+	# img_edit.rectangle((xy[0], xy[1], xy[0] + dims[0], xy[1] + dims[1]), outline="#000000")
 
 	font_path = getenv("FONT")
 	font = ImageFont.truetype(font_path, textsize)
@@ -27,9 +30,12 @@ async def add_text_to_image(text, img_path, xy, dims, out_name="res.jpg", textsi
 	img.save(out_name)
 
 def _get_centered_dims(y0, y1, lines, textsize):
+	# put the starting point at the center of the rectangle
 	start = int(y0 + y1 / 2)
 
+	# if there is more than one line you add half the lines times the size up
 	if lines > 1: start -= textsize * int(lines / 2)
+	# if lines are even you add half the size up to center the middle line
 	if lines % 2 != 0: start -= textsize / 2
 
 	return start
@@ -83,7 +89,7 @@ async def _get_textsize_and_lines(text, font_path, original_size, dims):
 		max_size = int(round(size / font.getlength(text) * width, 0))
 		size = min(height, max_size)
 	# ? this is a magic number and to be honest I don't know where it came from
-	# ? just circumstancial evidence
+	# ? just circumstancial evidence 2.6 works only for robot light
 	linewrap = int(round(width / size * 2.6, 0))
 
 	return size, textwrap.wrap(text, linewrap)

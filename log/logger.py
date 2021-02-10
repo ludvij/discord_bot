@@ -1,18 +1,27 @@
 
-def confirm(msg):
-	print(f"{logcolors.OKGREEN}[NOTICE]: {msg}{logcolors.ENDC}")
+def confirm(msg, tablevel=0):
+	tabs = get_tabs(tablevel)
+	print(f"{tabs}{logcolors.OKGREEN}[CONFIRM]: {msg}{logcolors.ENDC}")
 
-def notice(msg):
-	print(f"{logcolors.OKCYAN}[NOTICE]: {msg}{logcolors.ENDC}")
+def notice(msg, tablevel=0):
+	tabs = get_tabs(tablevel)
+	print(f"{tabs}{logcolors.OKCYAN}[NOTICE]: {msg}{logcolors.ENDC}")
 
-def warn(msg):
-	print(f"{logcolors.WARNING}[WARNING]: {msg}{logcolors.ENDC}")
+def warn(msg, tablevel=0):
+	tabs = get_tabs(tablevel)
+	print(f"{tabs}{logcolors.WARNING}[WARNING]: {msg}{logcolors.ENDC}")
 
-def error(msg):
-	print(f"{logcolors.FAIL}[ERROR]: {msg}{logcolors.ENDC}")
+def error(msg, tablevel=0):
+	tabs = get_tabs(tablevel)
+	print(f"{tabs}{logcolors.FAIL}[ERROR]: {msg}{logcolors.ENDC}")
 
-def log(msg):
-	print(f"\t[LOG]: {msg}")
+def log(msg, tablevel=1):
+	tabs = get_tabs(tablevel)
+	print(f"{tabs}[LOG]: {msg}")
+
+
+def get_tabs(n : int):
+	return '\t' * n
 	
 class logcolors:
     HEADER = '\033[95m'

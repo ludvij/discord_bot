@@ -16,7 +16,7 @@ class Bot(commands.Bot):
 			"cogs.cog_voice"
 			]
 
-		self.add_cog(cog_debug.Debug(self, extension_list))
+		self.add_cog(cog_debug.ExtensionManager())
 
 		self.init_extensions(extension_list)
 		
