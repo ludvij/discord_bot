@@ -1,8 +1,10 @@
 import discord
-from discord.ext import commands
-from os import getenv, remove
+import youtube_dl
 import log.logger as log
+from os import getenv, remove
+from discord.ext import commands
 # scripts
+from scripts.utils import ascii_video
 from scripts.utils import add_text_to_image
 
 
@@ -97,6 +99,15 @@ class MemeCommands(commands.Cog):
 	async def lol(self, ctx):
 		img = discord.File(getenv("IMG_SUMMON"))
 		await ctx.send(getenv("MENTION_LOL"), file=img) 
+
+	@commands.command(
+		aliases=['showv']
+	)
+	async def showvideo(self, ctx, url : str):
+		ydl_opts = {
+			"format" : 160,
+			"outtmpl" : r"rcs\video\vid.mp4"
+		}
 
 	# MEME command, puts whatever text inputted as the parameter in 
 	# the image Simón meme image
