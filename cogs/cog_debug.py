@@ -24,7 +24,7 @@ class ExtensionManager(commands.Cog):
 		if module in ctx.bot.extensions:
 			log.warn(f"Extension: {module} is loaded")
 			return;
-		self.bot.load_extension(module)
+		ctx.bot.load_extension(module)
 
 	# unloads an extension from the bot
 	# if the extension is not in the bot the stack trace is something that exists
@@ -34,14 +34,14 @@ class ExtensionManager(commands.Cog):
 		if module not in ctx.bot.extensions:
 			log.error(f"Extension: {module} is not loaded")
 			return;
-		self.bot.unload_extension(module)
+		ctx.bot.unload_extension(module)
 
 
 	# reloads all the extensions
-	@commands.command(hidden=True)
+	@commands.command(hidden=True, aliases=['_r'])
 	@commands.is_owner()
 	async def _reload(self, ctx):
 		log.warn("Reloading:")
 		for s in ctx.bot.extensions:
 			ctx.bot.reload_extension(s)
-		await ctx.send(f"Reload ended")
+		#await ctx.send(f"Reload ended")

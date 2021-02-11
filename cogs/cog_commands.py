@@ -1,11 +1,13 @@
+import os
 import discord
 import youtube_dl
+from io import BufferedWriter
 import log.logger as log
 from os import getenv, remove
 from discord.ext import commands
 # scripts
-from scripts.utils import ascii_video
-from scripts.utils import add_text_to_image
+from scripts import ascii_video
+from scripts import image_text
 
 
 def setup(bot):
@@ -75,8 +77,8 @@ class Commands(commands.Cog):
 		# delete command message
 		await ctx.message.delete()
 
-		m1 = await ctx.channel.fetch_message(id1)
-		m2 = await ctx.channel.fetch_message(id2)
+		m1 = await ctx.fetch_message(id1)
+		m2 = await ctx.fetch_message(id2)
 
 		# since the messages to delete must be between m1 and m2, that is
 		# after m1 before m2. So m1 must be the lower one
@@ -108,6 +110,47 @@ class MemeCommands(commands.Cog):
 			"format" : 160,
 			"outtmpl" : r"rcs\video\vid.mp4"
 		}
+		ascii_video.process("", 60, 33)
+
+	@commands.command(
+		aliases=['showa'],
+		help="""
+		Convierte una imagen a ASCII, se tiene que pasar la id
+		del mensaje que tiene la imagen para convertirse a ASCII.
+		Devuelve el resultado como un .txt.
+		"""
+	)
+	async def showascii(self, ctx, id : int, reverse=""):
+		# first check if the command is in reverse mode
+
+		message = await ctx.fetch_message(id) 
+		# check if message has attachments
+		if len(message.attachments) == 0:
+			log.error("$showascii message doesn't hava attachments")
+			return
+		img = message.attachments[0]
+		# check if attachment is an image
+		valid_ext = ['jpg', 'jpeg', 'png']
+		if not any(img.filename.lower().endswith(image) for image in valid_ext):
+			log.error(f"$showascii attachment {img.filename} is not supported")
+			return
+		# save the image to apply the algorithm
+		await img.save(img.filename)
+		# apply algorithm
+		log.log(reverse)
+		if reverse == "reverse": 
+			res = ascii_video.convert_to_ascii(img.filename, pwidth=400, reverse=True)
+		else: res = ascii_video.convert_to_ascii(img.filename, pwidth=400)
+		# save result in text
+		out_path = 'res.txt'
+		with open(out_path, 'w') as f:
+			f.write(res)
+		await ctx.channel.send("ASCII art",file=discord.File(out_path))
+		# delete filename
+		os.remove(img.filename)
+		os.remove(out_path)
+
+		
 
 	# MEME command, puts whatever text inputted as the parameter in 
 	# the image Simón meme image
@@ -128,7 +171,7 @@ class MemeCommands(commands.Cog):
 		# the out path of the image will be in rcs/img and the image will be called <name>.del.jpg
 		out_path = path.split(".")[0] + ".del." + path.split(".")[1]
 
-		await add_text_to_image(text, path, coords, dims, out_path)
+		await image_text.add_text(text, path, coords, dims, out_path)
 
 		await ctx.send(text, file=discord.File(out_path))
 		remove(out_path)

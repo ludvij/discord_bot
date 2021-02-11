@@ -6,7 +6,7 @@ import textwrap
 # Asynchronous funcion since it can be some time depending on the text to add 
 # thanks to the length calculations
 # TODO: find a better way to calculate the length
-async def add_text_to_image(text, img_path, xy, dims, out_name="res.jpg", textsize=60):
+async def add_text(text, img_path, xy, dims, out_name="res.jpg", textsize=60):
 	img = Image.open(img_path)
 	img_edit = ImageDraw.Draw(img)
 	# uncomment to test the position of the rectangle
@@ -20,7 +20,7 @@ async def add_text_to_image(text, img_path, xy, dims, out_name="res.jpg", textsi
 	font = ImageFont.truetype(font_path, textsize)
 
 	# Centering of the tet, just in vertical way
-	y_centered = _get_centered_dims(xy[1], dims[1], len(lines), textsize)
+	y_centered = get_centered_dims(xy[1], dims[1], len(lines), textsize)
 	xy = (xy[0], y_centered)
 	
 	for line in lines:
@@ -29,7 +29,7 @@ async def add_text_to_image(text, img_path, xy, dims, out_name="res.jpg", textsi
 
 	img.save(out_name)
 
-def _get_centered_dims(y0, y1, lines, textsize):
+def get_centered_dims(y0, y1, lines, textsize):
 	# put the starting point at the center of the rectangle
 	start = int(y0 + y1 / 2)
 
