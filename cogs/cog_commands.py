@@ -112,17 +112,17 @@ class MemeCommands(commands.Cog):
 	async def showvideo(self, ctx, URL : str):
 		# stuff to download the video
 		# no audio, worst quality possible
-		out_path = fr"rcs\video\ascii.mp4"
+		vid_path = fr"rcs\video\ascii.mp4"
 		ydl_opts = {
 			"format" : '160',
-			"outtmpl" : out_path,
+			"outtmpl" : vid_path,
 		}
 		# download the video
 		with youtube_dl.YoutubeDL(ydl_opts) as ydl:
 			ydl.download([URL])
 		# asynchronous generator, I have no idea what i'm doing
 		# but I think this will make the bot run better
-		generator = ascii_video.process(out_path, 60, 33)
+		generator = ascii_video.process(vid_path, 60, 33)
 		self.video_play = True
 		c = 0
 		# turning off the listener cog momentarily
@@ -173,9 +173,8 @@ class MemeCommands(commands.Cog):
 		# save the image to apply the algorithm
 		await img.save(img.filename)
 		# apply algorithm
-		if reverse == "reverse": 
-			res = ascii_video.convert_to_ascii(img.filename, pwidth=400, reverse=True)
-		else: res = ascii_video.convert_to_ascii(img.filename, pwidth=400)
+		reverse = reverse == 'reverse' 
+		res = ascii_video.image_to_ascii(img.filename, pheight=720, reverse=reverse)
 		# save result in text
 		out_path = 'res.txt'
 		with open(out_path, 'w') as f:

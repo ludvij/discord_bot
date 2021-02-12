@@ -1,43 +1,54 @@
 from sys import argv
 import cv2
-from PIL import Image
 import os
 
 # Extracts frames from videos
 # made a generator to not clutter dirs in images
 # a frame is extracted a image is processed
-def frame_capture(path, out_path):
+def video_to_ascii(path, pwidth=None, pheight=None, reverse=False, discord=False):
 	# path to the video
 	vid = cv2.VideoCapture(path)
 	# checks wheter frames where extracted
 	has_frame, frame = vid.read()
 	while has_frame:
-		# saves the frames
-		saved = cv2.imwrite(out_path, frame)
+		# converts the frame in ascii
+		res = image_to_ascii(frame, pwidth, pheight, reverse, discord)
 		# extracts the frames
 		has_frame, frame = vid.read()
-		yield has_frame
+		yield res
 
+# if only the width is provided
+# it will be resized to pwidth x pwidth / ratio
+# if only the height is provided
+# it will be resized to pheight * ratio * pheight 
+def resize(img, pwidth=0, pheight=0):
+	if pheight != 0 or pwidth != 0:
+		width = pwidth
+		height = pheight
+		ratio = img.shape[0] / img.shape[1]
 
-def convert_to_ascii(path, pwidth=None, pheight=None, reverse=False, discord=False):
-	# open image and convert it to gray scale
-	img = Image.open(path).convert("L")
+		if width != 0 and height == 0:
+			height = int(width * ratio)
+		elif pheight != 0:
+			width = int(height / ratio)
+	else:
+		height = img.shape[0]
+		width = img.shape[1]
+		
+	return cv2.resize(img, (width, int(height / 2)), interpolation=cv2.INTER_LINEAR)
+	
 
-	# if only the width is provided
-	# it will be resized to pwidth x pwidth / ratio
-	# if only the height is provided
-	# it will be resized to pheight * ratio * pheight 
-	# resize image to something more manageable ratio is used to respect img ratio
-	if pheight != None and pwidth != None: 
-		img = img.resize((pwidth, int(pheight / 2)))
-	elif pwidth != None:
-		ratio = img.size[0] / img.size[1]
-		img = img.resize((pwidth, int(pwidth / ratio / 2)))
-	elif pheight != None:
-		ratio = img.size[0] / img.size[1]
-		img = img.resize((int(pheight * ratio), pheight / 2))
+def image_to_ascii(src, pwidth=0, pheight=0, reverse=False, discord=False):
+	if (type(src) == str):
+		src = cv2.imread(src)
+	# convert image to gray scale
+	gray = cv2.cvtColor(src, cv2.COLOR_BGR2GRAY)
 
-	width, height = img.size
+	# resize image to something more manageable or not, depending of cl args
+	img = resize(gray, pwidth, pheight)
+	# opencv puts height first
+	height = img.shape[0]
+	width = img.shape[1]
 
 	# since pixels in gray scale go from 0 to 255 we have to divide
 	# in ranges to get the best char
@@ -47,10 +58,10 @@ def convert_to_ascii(path, pwidth=None, pheight=None, reverse=False, discord=Fal
 	# so we truncate it to 2, so the char would be ":"
 	# since this operation is length dependant we can add whatever char we like 
 	# and it will be added to its range, a char hue if you like
-	chars = " .,_-~=+*:;!?#%@"
+	chars = ' .,_-~=+*:;!?#%@'
 	# since discord can't send empty messages ans some characters do weird stuff we don't send them
 	# also we use monospace characters
-	if discord: chars = "".join(['⠀','⠄','⠆','⠖','⠶','⡶','⣩','⣪','⣫','⣾','⣿'])
+	if discord: chars = '⠄⠆⠖⠶⡶⣩⣪⣫⣾⣿'
 	# to reverse the spectrum we reverse the string
 	if reverse: chars = chars[::-1]
 	# store to ease computations
@@ -61,7 +72,7 @@ def convert_to_ascii(path, pwidth=None, pheight=None, reverse=False, discord=Fal
 	# iterate through each pixel and assign each char
 	for i in range(width):
 		for j in range(height):
-			px = img.getpixel((i,j))
+			px = img[j, i]
 			index = int(px * divisor)
 			#print(px, index)
 			arr[j][i] = chars[index]	
@@ -73,40 +84,29 @@ def convert_to_ascii(path, pwidth=None, pheight=None, reverse=False, discord=Fal
 	return printable_arr
 
 
-# I know it's messy
-# TODO: fix that and add frame management to make this stable
 def main():
-	out_path = r"rcs\img\frame.jpg"
-	continue_loop = False
-	loop = True
-	if (len(argv) > 3 and '-l' in argv):
-		continue_loop = True
-	while loop:
-		frame = frame_capture(argv[1], out_path)
-		has_frame = True
-		while has_frame:
-			has_frame = next(frame, False)
-			if len(argv) > 4:
-				res = convert_to_ascii(out_path, pwidth=int(argv[2]), pheight=int(argv[3]))
-			else:
-				res = convert_to_ascii(out_path, pwidth=int(argv[2]))
+	# check if we are looping 
+	loop = '-l' in argv and len(argv) > 4
+	# check if size is specified
+	width = int(argv[2]) if len(argv) > 2 else 0
+	height = int(argv[3]) if len(argv) > 3 else 0
+	gen = video_to_ascii(argv[1], pwidth=width, pheight=height)
+	res = ""
+	while True:
+		while res != False:
+			res = next(gen, False)
 			print(f'\033[H{res}')
-			os.remove(out_path)
-			
-		if continue_loop:
-			loop = True
-		else: loop = False
+		# do while emulation
+		if not loop: 
+			break
 
 
 # generator for the bot
 async def process(vid_path, pwidth, pheight):
-	out_path = r"rcs\img\frame.jpg"
-
-	frame = frame_capture(vid_path, out_path)
-	has_frame = True
-	while has_frame:
-		has_frame = next(frame, False)
-		res = convert_to_ascii(out_path, pwidth=pwidth, pheight=pheight, reverse=True, discord=True)
+	gen = video_to_ascii(vid_path, pwidth=pwidth, pheight=pheight, discord=True, reverse=True)
+	res = ""
+	while res != False:
+		res = next(gen, False)
 		yield res
 	os.remove(vid_path)
 
