@@ -1,7 +1,6 @@
 from sys import argv
 import cv2
 from PIL import Image
-import numpy as np
 import os
 
 # Extracts frames from videos
@@ -20,21 +19,23 @@ def frame_capture(path, out_path):
 		yield has_frame
 
 
-# size should be 60x60
-def convert_to_ascii(path, pwidth=None, pheight=None, reverse=False):
+def convert_to_ascii(path, pwidth=None, pheight=None, reverse=False, discord=False):
 	# open image and convert it to gray scale
 	img = Image.open(path).convert("L")
 
-	# if size is provide it will be resized to pwidth x pwidth / ratio
+	# if only the width is provided
+	# it will be resized to pwidth x pwidth / ratio
+	# if only the height is provided
+	# it will be resized to pheight * ratio * pheight 
 	# resize image to something more manageable ratio is used to respect img ratio
 	if pheight != None and pwidth != None: 
-		img = img.resize((pwidth, pheight))
+		img = img.resize((pwidth, int(pheight / 2)))
 	elif pwidth != None:
 		ratio = img.size[0] / img.size[1]
-		img = img.resize((pwidth, int(pwidth / ratio)))
+		img = img.resize((pwidth, int(pwidth / ratio / 2)))
 	elif pheight != None:
 		ratio = img.size[0] / img.size[1]
-		img = img.resize((int(pheight * ratio), pheight))
+		img = img.resize((int(pheight * ratio), pheight / 2))
 
 	width, height = img.size
 
@@ -47,13 +48,15 @@ def convert_to_ascii(path, pwidth=None, pheight=None, reverse=False):
 	# since this operation is length dependant we can add whatever char we like 
 	# and it will be added to its range, a char hue if you like
 	chars = " .,_-~=+*:;!?#%@"
+	# since discord can't send empty messages ans some characters do weird stuff we don't send them
+	# also we use monospace characters
+	if discord: chars = "".join(['⠀','⠄','⠆','⠖','⠶','⡶','⣩','⣪','⣫','⣾','⣿'])
+	# to reverse the spectrum we reverse the string
 	if reverse: chars = chars[::-1]
 	# store to ease computations
 	divisor = (len(chars) - 1) / 255
-
-	# numpy arrays are a pain to work with, but fast
-	# for some reason its transposed (I know why but still a pain)
-	arr = np.chararray((height, width))
+	# pixel array
+	arr = [[(y,x) for x in range(width)] for y in range(height)]
 
 	# iterate through each pixel and assign each char
 	for i in range(width):
@@ -61,27 +64,32 @@ def convert_to_ascii(path, pwidth=None, pheight=None, reverse=False):
 			px = img.getpixel((i,j))
 			index = int(px * divisor)
 			#print(px, index)
-			arr[j, i] = chars[index]	
+			arr[j][i] = chars[index]	
 
 	# np char arrays are encoded by defautl, so if you want a nice printable output you
 	# have to do this
-	printable_arr = "\n".join([''.join(row) for row in arr.decode('utf-8')])
+	printable_arr = "\n".join([''.join(row) for row in arr])
 
 	return printable_arr
 
+
+# I know it's messy
+# TODO: fix that and add frame management to make this stable
 def main():
 	out_path = r"rcs\img\frame.jpg"
 	continue_loop = False
 	loop = True
-	if (len(argv) > 3 and argv[3] == '-l'):
+	if (len(argv) > 3 and '-l' in argv):
 		continue_loop = True
 	while loop:
 		frame = frame_capture(argv[1], out_path)
 		has_frame = True
 		while has_frame:
 			has_frame = next(frame, False)
-
-			res = convert_to_ascii(out_path, pwidth=int(argv[2]))
+			if len(argv) > 4:
+				res = convert_to_ascii(out_path, pwidth=int(argv[2]), pheight=int(argv[3]))
+			else:
+				res = convert_to_ascii(out_path, pwidth=int(argv[2]))
 			print(f'\033[H{res}')
 			os.remove(out_path)
 			
@@ -90,15 +98,17 @@ def main():
 		else: loop = False
 
 
-
+# generator for the bot
 async def process(vid_path, pwidth, pheight):
 	out_path = r"rcs\img\frame.jpg"
+
 	frame = frame_capture(vid_path, out_path)
 	has_frame = True
 	while has_frame:
 		has_frame = next(frame, False)
-		res = convert_to_ascii(out_path, pwidth=pwidth, pheight=pheight)
-	pass
+		res = convert_to_ascii(out_path, pwidth=pwidth, pheight=pheight, reverse=True, discord=True)
+		yield res
+	os.remove(vid_path)
 
 
 

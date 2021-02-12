@@ -45,3 +45,9 @@ class ExtensionManager(commands.Cog):
 		for s in ctx.bot.extensions:
 			ctx.bot.reload_extension(s)
 		#await ctx.send(f"Reload ended")
+	@commands.command(hidden=True)
+	@commands.is_owner()
+	async def _cogs(self, ctx):
+		printable_out = [''.join(x) for x in ctx.bot.cogs]
+		for i in printable_out:
+			log.log(f"{i}")

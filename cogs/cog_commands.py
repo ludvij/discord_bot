@@ -1,4 +1,5 @@
 import os
+import asyncio
 import discord
 import youtube_dl
 from io import BufferedWriter
@@ -31,7 +32,7 @@ def teardown(bot):
 
 class Commands(commands.Cog):
 	def __init__(self):
-		pass
+		self.video_play = False
 
 	# TODO: join these two commands
 	# command to delete a specified number of commands in a text channel
@@ -103,14 +104,48 @@ class MemeCommands(commands.Cog):
 		await ctx.send(getenv("MENTION_LOL"), file=img) 
 
 	@commands.command(
-		aliases=['showv']
+		aliases=['showv'],
+		help="""
+		Convierte un video a ASCII
+		"""
 	)
-	async def showvideo(self, ctx, url : str):
+	async def showvideo(self, ctx, URL : str):
+		# stuff to download the video
+		# no audio, worst quality possible
+		out_path = fr"rcs\video\ascii.mp4"
 		ydl_opts = {
-			"format" : 160,
-			"outtmpl" : r"rcs\video\vid.mp4"
+			"format" : '160',
+			"outtmpl" : out_path,
 		}
-		ascii_video.process("", 60, 33)
+		# download the video
+		with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+			ydl.download([URL])
+		# asynchronous generator, I have no idea what i'm doing
+		# but I think this will make the bot run better
+		generator = ascii_video.process(out_path, 60, 33)
+		self.video_play = True
+		c = 0
+		# turning off the listener cog momentarily
+		while self.video_play:
+			try:
+				res = await generator.__anext__()
+				#log.log(f"\n{res}")
+				await ctx.send(res)
+				c += 1
+			except StopAsyncIteration:
+				log.notice(f"stopped at frame {c}", 1)
+				self.video_play = False
+
+	@commands.command(
+		aliases=['stopv'],
+		help="""
+		Para la ejecución de showvideo
+		"""
+	)
+	async def stopvideo(self, ctx):
+		self.video_play = False
+		ctx.send("stopped reproduction")
+		log.confirm("stopped reproduction", 1)
 
 	@commands.command(
 		aliases=['showa'],
@@ -118,6 +153,7 @@ class MemeCommands(commands.Cog):
 		Convierte una imagen a ASCII, se tiene que pasar la id
 		del mensaje que tiene la imagen para convertirse a ASCII.
 		Devuelve el resultado como un .txt.
+		Si se añade reverse al final se invertiran blancos por negros.
 		"""
 	)
 	async def showascii(self, ctx, id : int, reverse=""):
@@ -137,7 +173,6 @@ class MemeCommands(commands.Cog):
 		# save the image to apply the algorithm
 		await img.save(img.filename)
 		# apply algorithm
-		log.log(reverse)
 		if reverse == "reverse": 
 			res = ascii_video.convert_to_ascii(img.filename, pwidth=400, reverse=True)
 		else: res = ascii_video.convert_to_ascii(img.filename, pwidth=400)
