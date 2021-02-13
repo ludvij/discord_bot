@@ -45,6 +45,7 @@ class ExtensionManager(commands.Cog):
 		for s in ctx.bot.extensions:
 			ctx.bot.reload_extension(s)
 		#await ctx.send(f"Reload ended")
+		
 	@commands.command(hidden=True)
 	@commands.is_owner()
 	async def _cogs(self, ctx):

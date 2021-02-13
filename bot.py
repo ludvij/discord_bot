@@ -3,6 +3,7 @@ from sys import argv
 from os import getenv
 from dotenv import load_dotenv
 from discord.ext import commands
+import log.logger  as log
 #!DEBUG
 from cogs import cog_commands, cog_debug, cog_listeners, cog_voice
 # load the .env file
@@ -11,7 +12,9 @@ load_dotenv(dotenv_path=r'rcs\bot.env')
 
 class Bot(commands.Bot):
 	def __init__(self):
-		super().__init__(command_prefix=getenv("PREFIX"))
+		# set the rpefix to PREFIX insede the .env
+		# or just mention the code
+		super().__init__(command_prefix=commands.when_mentioned_or(getenv("PREFIX")))
 
 		self.add_cog(cog_debug.ExtensionManager())
 
@@ -34,9 +37,16 @@ class Bot(commands.Bot):
 		
 		
 	def half_load(self):	
-		self.add_cog(cog_commands.Commands())
 		self.add_cog(cog_listeners.Listeners(self))
 		self.add_cog(cog_voice.GeneralVoice())
+		self.add_cog(cog_commands.Commands())
+
+	# error handler
+	async def on_command_error(self, ctx, exception):
+		await ctx.send("Error")
+		await ctx.send_help(ctx.invoked_with)
+		log.error(f"Failed execution / parsing of {ctx.command}")
+		log.error(f"Caused by {exception}", 1)
 		
 		
 bot = Bot()

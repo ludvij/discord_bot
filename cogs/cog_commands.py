@@ -1,4 +1,5 @@
 import os
+import typing
 import asyncio
 import discord
 import youtube_dl
@@ -7,8 +8,8 @@ import log.logger as log
 from os import getenv, remove
 from discord.ext import commands
 # scripts
-from scripts import ascii_video
 from scripts import image_text
+from scripts import ascii_video
 
 
 def setup(bot):
@@ -46,7 +47,7 @@ class Commands(commands.Cog):
 		"""
 	)
 	@commands.has_role('admin')
-	async def bulk_delete(self, ctx, n : int):
+	async def bulk_delete(self, ctx, n:int):
 		await ctx.message.delete()
 		
 		channel = ctx.channel
@@ -74,7 +75,7 @@ class Commands(commands.Cog):
 		Solo puede utilizarse por admins.
 		"""
 	)
-	async def bulk_delete_range(self, ctx, id1 : int, id2 : int):
+	async def bulk_delete_range(self, ctx, id1:int, id2:int):
 		# delete command message
 		await ctx.message.delete()
 
@@ -109,10 +110,12 @@ class MemeCommands(commands.Cog):
 		Convierte un video a ASCII
 		"""
 	)
-	async def showvideo(self, ctx, URL : str):
+	async def showvideo(self, ctx, URL:str):
 		# stuff to download the video
 		# no audio, worst quality possible
 		vid_path = fr"rcs\video\ascii.mp4"
+		if os.path.exists(vid_path):
+			os.remove(vid_path)
 		ydl_opts = {
 			"format" : '160',
 			"outtmpl" : vid_path,
@@ -130,11 +133,13 @@ class MemeCommands(commands.Cog):
 			try:
 				res = await generator.__anext__()
 				#log.log(f"\n{res}")
-				await ctx.send(res)
+				await ctx.send(res, delete_after=20)
 				c += 1
 			except StopAsyncIteration:
 				log.notice(f"stopped at frame {c}", 1)
 				self.video_play = False
+
+		os.remove(vid_path)
 
 	@commands.command(
 		aliases=['stopv'],
@@ -156,20 +161,16 @@ class MemeCommands(commands.Cog):
 		Si se añade reverse al final se invertiran blancos por negros.
 		"""
 	)
-	async def showascii(self, ctx, id : int, reverse=""):
-		# first check if the command is in reverse mode
-
+	async def showascii(self, ctx, id:int, reverse:typing.Optional[str]=""):
 		message = await ctx.fetch_message(id) 
 		# check if message has attachments
 		if len(message.attachments) == 0:
-			log.error("$showascii message doesn't hava attachments")
-			return
+			raise commands.CommandError(message=f"Message {id} doesn't have attachments")
 		img = message.attachments[0]
 		# check if attachment is an image
 		valid_ext = ['jpg', 'jpeg', 'png']
 		if not any(img.filename.lower().endswith(image) for image in valid_ext):
-			log.error(f"$showascii attachment {img.filename} is not supported")
-			return
+			raise commands.CommandError(message=f"Attachment {img.filename} is not supported")
 		# save the image to apply the algorithm
 		await img.save(img.filename)
 		# apply algorithm
@@ -192,14 +193,18 @@ class MemeCommands(commands.Cog):
 		aliases=["Simón, Simon"],
 		help="coge la foto de simon y modifica el texto a el parametro"
 	)
-	async def simon(self, ctx, *args):
+	async def simon(self, ctx, *text):
+		print(text)
 		# the coordinates of the upper left corner of the rectangel
 		# where the text will be
 		coords = (365, 1350)
 		# the dimensions of the rectangle where the text will be
 		dims = (230, 125)
-		# convert the args array into a string
-		text = " ".join(args)
+		# convert the args array into a string and stuff for teh default argument
+		# because  I don't want to add "" in the command
+		if (text != ()):
+			text = " ".join(text)
+		else: text = "Simón"
 
 		path = getenv("IMG_SIMON")
 		# the out path of the image will be in rcs/img and the image will be called <name>.del.jpg

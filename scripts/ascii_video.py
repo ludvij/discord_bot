@@ -5,7 +5,7 @@ import os
 # Extracts frames from videos
 # made a generator to not clutter dirs in images
 # a frame is extracted a image is processed
-def video_to_ascii(path, pwidth=None, pheight=None, reverse=False, discord=False):
+def video_to_ascii(path:str, pwidth:int=0, pheight:int=0, reverse:bool=False, discord:bool=False):
 	# path to the video
 	vid = cv2.VideoCapture(path)
 	# checks wheter frames where extracted
@@ -21,7 +21,7 @@ def video_to_ascii(path, pwidth=None, pheight=None, reverse=False, discord=False
 # it will be resized to pwidth x pwidth / ratio
 # if only the height is provided
 # it will be resized to pheight * ratio * pheight 
-def resize(img, pwidth=0, pheight=0):
+def resize(img, pwidth:int=0, pheight:int=0):
 	if pheight != 0 or pwidth != 0:
 		width = pwidth
 		height = pheight
@@ -38,7 +38,7 @@ def resize(img, pwidth=0, pheight=0):
 	return cv2.resize(img, (width, int(height / 2)), interpolation=cv2.INTER_LINEAR)
 	
 
-def image_to_ascii(src, pwidth=0, pheight=0, reverse=False, discord=False):
+def image_to_ascii(src, pwidth:int=0, pheight:int=0, reverse:bool=False, discord:bool=False):
 	if (type(src) == str):
 		src = cv2.imread(src)
 	# convert image to gray scale
@@ -102,13 +102,12 @@ def main():
 
 
 # generator for the bot
-async def process(vid_path, pwidth, pheight):
+async def process(vid_path:str, pwidth:int, pheight:int):
 	gen = video_to_ascii(vid_path, pwidth=pwidth, pheight=pheight, discord=True, reverse=True)
-	res = ""
+	res = next(gen, False)
 	while res != False:
-		res = next(gen, False)
 		yield res
-	os.remove(vid_path)
+		res = next(gen, False)
 
 
 
