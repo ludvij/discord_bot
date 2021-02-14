@@ -1,8 +1,12 @@
-# imports
+# command line arguments
 from sys import argv
+# env things
 from os import getenv
 from dotenv import load_dotenv
+# discord
+import discord
 from discord.ext import commands
+# log
 import log.logger  as log
 #!DEBUG
 from cogs import cog_commands, cog_debug, cog_listeners, cog_voice
@@ -26,16 +30,16 @@ class Bot(commands.Bot):
 	def run(self):
 		super().run(getenv("TOKEN"))
 
-
+	# loads everything
 	def full_load(self):	
 		extension_list = [
 			"cogs.cog_listeners", 
 			"cogs.cog_commands", 
 			"cogs.cog_voice"
-			]
+		]
 		self.init_extensions(extension_list)
 		
-		
+	# loads only cogs that doesn't requiere pip installed pkgs
 	def half_load(self):	
 		self.add_cog(cog_listeners.Listeners(self))
 		self.add_cog(cog_voice.GeneralVoice())
@@ -52,7 +56,6 @@ class Bot(commands.Bot):
 bot = Bot()
 
 def main():
-	print(argv)
 	if len(argv) == 1 or argv[1] == '-f':
 		bot.full_load()
 	elif argv[1] == '-h':

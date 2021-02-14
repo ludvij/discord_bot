@@ -1,6 +1,7 @@
 import discord
 from discord.utils import get
 from discord.ext import commands
+# log
 import log.logger as log
 # this Cog will handle the radio stuff
 def setup(bot):
@@ -35,14 +36,13 @@ class RadioConnect(commands.Cog):
 	)
 	async def playradio(self, ctx, url = "http://radio3.rtveradio.cires21.com/radio3.mp3"):
 		voice = get(ctx.bot.voice_clients, guild=ctx.guild)
-		channel = ctx.author.voice.channel
 
+		if ctx.author.voice == None:
+			raise commands.CommandError(f"User {ctx.author} is not connected to a voice channel")
+		channel = ctx.author.voice.channel
 		if voice == None:
 			await channel.connect()
 			voice = get(ctx.bot.voice_clients, guild=ctx.guild)
-		elif channel == None:
-			await ctx.send("You are not in a voice chat")
-			return
 		else: 
 			await voice.move_to(channel)
 

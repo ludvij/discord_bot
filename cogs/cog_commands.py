@@ -3,10 +3,11 @@ import typing
 import asyncio
 import discord
 import youtube_dl
-from io import BufferedWriter
-import log.logger as log
+from urllib.request import urlretrieve
 from os import getenv, remove
 from discord.ext import commands
+# log
+import log.logger as log
 # scripts
 from scripts import image_text
 from scripts import ascii_video
@@ -35,11 +36,25 @@ class Commands(commands.Cog):
 	def __init__(self):
 		self.video_play = False
 
+	@commands.command(
+		aliases=['pfp'],
+		help="""
+		Muestra la imagen del usuario al que se ha mencionado.
+		Si no se menciona a nadie se muestra la de la persona que invocó el comando.
+		"""
+	)
+	async def profilepicture(self, ctx):
+		if len(ctx.message.mentions) == 0:
+			user = ctx.author
+		else:
+			user = ctx.message.mentions[0]
+		await ctx.send(user.avatar_url_as(format='png'))
+
 	# TODO: join these two commands
 	# command to delete a specified number of commands in a text channel
 	@commands.command(
 		name='bulkdelete',
-		aliases=['bulk_delete', 'bdel'],
+		aliases=['bdel'],
 		help="""
 		Borra x mensajes en el canal en el que se escribe el comando.
 		Solo puede utilizarse por admins.
@@ -67,7 +82,7 @@ class Commands(commands.Cog):
 	@commands.has_role('admin')
 	@commands.command(
 		name='bulkdeleterange',
-		aliases=['bulk_delete_range', 'bdelr'],
+		aliases=['bdelr'],
 		help="""
 		Borra todos los mensajes entre dos mensajes,
 		los mensajes se pasan por id y tiene que estar en 

@@ -1,4 +1,5 @@
 from discord.ext import commands
+# log
 import log.logger as log
 
 #! DEBUG STUFF
