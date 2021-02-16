@@ -2,6 +2,7 @@ import os
 import discord
 import youtube_dl
 from os import getenv, remove
+from discord.utils import get
 from datetime import timedelta
 from discord.ext import commands
 from typing import Optional, Union
@@ -42,10 +43,13 @@ class Commands(commands.Cog):
 		Si no se menciona a nadie se muestra la de la persona que invocó el comando.
 		"""
 	)
-	async def profilepicture(self, ctx, user:commands.MemberConverter=None):
-		if user == None:
-			user = ctx.author
-		await ctx.send(user.avatar_url_as(format='png'))
+	async def profilepicture(self, ctx, user:Union[commands.MemberConverter, commands.RoleConverter]=None):
+		if user is None:
+			await ctx.send(ctx.author.avatar_url_as(format='png'))
+		elif type(user) == discord.Role:
+			[await ctx.send(member.avatar_url_as(format='png')) for member in user.members]
+		else:
+			await ctx.send(user.avatar_url_as(format='png'))
 
 	# command to delete a specified number of commands in a text channel
 	# or betwen two commands
@@ -145,11 +149,10 @@ class MemeCommands(commands.Cog):
 		Si se añade reverse al final se invertiran blancos por negros.
 		"""
 	)
-	async def showascii(self, ctx, id:int, reverse:Optional[str]):
-		message = await ctx.fetch_message(id) 
+	async def showascii(self, ctx, message:commands.MessageConverter, reverse:Optional[str]):
 		# check if message has attachments
 		if len(message.attachments) == 0:
-			raise commands.CommandError(message=f"Message {id} doesn't have attachments")
+			raise commands.CommandError(message=f"Message {message.id} doesn't have attachments")
 		img = message.attachments[0]
 		# check if attachment is an image
 		valid_ext = ['jpg', 'jpeg', 'png']

@@ -18,7 +18,7 @@ class Bot(commands.Bot):
 	def __init__(self):
 		# set the rpefix to PREFIX insede the .env
 		# or just mention the code
-		super().__init__(command_prefix=commands.when_mentioned_or(getenv("PREFIX")))
+		super().__init__(command_prefix=commands.when_mentioned_or(getenv("PREFIX")), intents=discord.Intents.all())
 
 		self.add_cog(cog_debug.ExtensionManager())
 
@@ -47,7 +47,7 @@ class Bot(commands.Bot):
 
 	# error handler
 	async def on_command_error(self, ctx, exception):
-		await ctx.send("Error")
+		await ctx.send(f"[Error] {exception.args[0]}")
 		await ctx.send_help(ctx.invoked_with)
 		log.error(f"Failed execution / parsing of {ctx.command}")
 		log.error(f"Caused by {exception}", 1)

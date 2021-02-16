@@ -83,21 +83,27 @@ def image_to_ascii(src, pwidth:int=0, pheight:int=0, reverse:bool=False, discord
 
 	return printable_arr
 
+# generator for the bot
+async def process(vid_path:str, pwidth:int, pheight:int):
+	for res in video_to_ascii(vid_path, pwidth=pwidth, pheight=pheight, discord=True, reverse=True):
+		yield res
+
+
+def loop(path:str, width:int, height:int):
+	while True:
+		[print(frame) for frame in video_to_ascii(path, pwidth=width, pheight=height)]
 
 def main():
 	# check if we are looping 
-	loop = '-l' in argv and len(argv) > 4
-	# check if size is specified
 	width = int(argv[2]) if len(argv) > 2 else 0
 	height = int(argv[3]) if len(argv) > 3 else 0
-	[print(frame) for frame in video_to_ascii(argv[1], pwidth=width, pheight=height)]
+
+	if'-l' in argv and len(argv) > 4:
+		loop(argv[1], width, height)
+	else:
+		[print(frame) for frame in video_to_ascii(argv[1], pwidth=width, pheight=height)]
 
 
-# generator for the bot
-async def process(vid_path:str, pwidth:int, pheight:int):
-	gen = video_to_ascii(vid_path, pwidth=pwidth, pheight=pheight, discord=True, reverse=True)
-	for res in gen:
-		yield next(gen, False)
 
 
 
