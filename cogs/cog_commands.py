@@ -1,11 +1,10 @@
 import os
-import typing
-import asyncio
 import discord
 import youtube_dl
-from urllib.request import urlretrieve
 from os import getenv, remove
+from datetime import timedelta
 from discord.ext import commands
+from typing import Optional, Union
 # log
 import log.logger as log
 # scripts
@@ -43,69 +42,41 @@ class Commands(commands.Cog):
 		Si no se menciona a nadie se muestra la de la persona que invocó el comando.
 		"""
 	)
-	async def profilepicture(self, ctx):
-		if len(ctx.message.mentions) == 0:
+	async def profilepicture(self, ctx, user:commands.MemberConverter=None):
+		if user == None:
 			user = ctx.author
-		else:
-			user = ctx.message.mentions[0]
 		await ctx.send(user.avatar_url_as(format='png'))
 
-	# TODO: join these two commands
 	# command to delete a specified number of commands in a text channel
+	# or betwen two commands
 	@commands.command(
-		name='bulkdelete',
-		aliases=['bdel'],
+		name='clear',
 		help="""
-		Borra x mensajes en el canal en el que se escribe el comando.
-		Solo puede utilizarse por admins.
-		IMPORTANTE: El mensaje del comando no se cuenta en el numero de mensajes
-		"""
-	)
-	@commands.has_role('admin')
-	async def bulk_delete(self, ctx, n:int):
-		await ctx.message.delete()
-		
-		channel = ctx.channel
-		log.notice(f"Deleting {n} messages in [{channel.guild}:{channel}]")
-		# A better way of bulk deleting since the older one was quite slow
-		await channel.purge(limit=n)
-		# async for message in channel.history(limit=n+1):
-		# 	log.notice(f"Deleted message: [{message.content}:{message.author}]", 1)
-		# 	await message.delete()
-		log.confirm("Finished bulk deletion", 1)
-
-	# messages will be passed through id, so
-	# $bdelr 93810310801 1230918301 will remove between 
-	# 93810310801 and 1230918301
-	# restrictions: both messages should be in the same channel
-	# order should not matter
-	@commands.has_role('admin')
-	@commands.command(
-		name='bulkdeleterange',
-		aliases=['bdelr'],
-		help="""
-		Borra todos los mensajes entre dos mensajes,
-		los mensajes se pasan por id y tiene que estar en 
-		el mismo canal.
+		Si se pasa solo un argument el bot borrará x mensaje en el canal del comando.
+		Si se pasan dos argumentos, ambos tienen que ser ids de mensajes del mismo canal, 
+		el bot borrará todos los mensajes entre ellos, ellos incluidos.
 		Solo puede utilizarse por admins.
 		"""
 	)
-	async def bulk_delete_range(self, ctx, id1:int, id2:int):
-		# delete command message
+	@commands.has_role('admin')
+	async def bulk_delete(self, ctx, n_or_m1:Union[commands.MessageConverter, int], m2:commands.MessageConverter=None):
 		await ctx.message.delete()
-
-		m1 = await ctx.fetch_message(id1)
-		m2 = await ctx.fetch_message(id2)
-
-		# since the messages to delete must be between m1 and m2, that is
-		# after m1 before m2. So m1 must be the lower one
-		if m1.created_at > m2.created_at:
-			m1, m2 = m2, m1
+		if m2 == None:
+			n = n_or_m1 
+			channel = ctx.channel		
+			log.notice(f"Deleting {n} messages in [{channel.guild}:{channel}]")
+			# A better way of bulk deleting since the older one was quite slow
+			await channel.purge(limit=n)
+		else:
+			m1 = n_or_m1
+			if m1.channel != m2.channel:
+				raise commands.CommandError(f"msg {m1.channel}:{m1.id} and msg {m2.channel}:{m2.id} are not in the same channel")
+			if m1.created_at > m2.created_at:
+				m1, m2 = m2, m1
 		
-		log.notice(f"removing from {m1.id}:{m1.created_at} to {m2.id}:{m2.created_at}")
-		await ctx.channel.purge(before=m2.created_at, after=m1.created_at)
+			log.notice(f"removing from {m1.id}:{m1.created_at} to {m2.id}:{m2.created_at}")
+			await ctx.channel.purge(before=m2.created_at + timedelta(0,1), after=m1.created_at - timedelta(0,1))
 		log.confirm("Finished bulk deletion", 1)
-
 
 class MemeCommands(commands.Cog):
 	def __init__(self):
@@ -119,6 +90,8 @@ class MemeCommands(commands.Cog):
 		img = discord.File(getenv("IMG_SUMMON"))
 		await ctx.send(getenv("MENTION_LOL"), file=img) 
 
+
+	#? should I move the ydl thing to a function later ?
 	@commands.command(
 		aliases=['showv'],
 		help="""
@@ -140,21 +113,17 @@ class MemeCommands(commands.Cog):
 			ydl.download([URL])
 		# asynchronous generator, I have no idea what i'm doing
 		# but I think this will make the bot run better
-		generator = ascii_video.process(vid_path, 60, 33)
+		agen = ascii_video.process(vid_path, 60, 33)
 		self.video_play = True
-		c = 0
-		# turning off the listener cog momentarily
-		while self.video_play:
-			try:
-				res = await generator.__anext__()
-				#log.log(f"\n{res}")
-				await ctx.send(res, delete_after=20)
-				c += 1
-			except StopAsyncIteration:
-				log.notice(f"stopped at frame {c}", 1)
-				self.video_play = False
-
-		os.remove(vid_path)
+		async for res in agen:
+			await ctx.send(res, delete_after=10)
+			if not self.video_play: break
+		# TODO find a way to fix this
+		agen = None
+		try:
+			os.remove(vid_path)
+		except PermissionError:
+			pass
 
 	@commands.command(
 		aliases=['stopv'],
@@ -176,7 +145,7 @@ class MemeCommands(commands.Cog):
 		Si se añade reverse al final se invertiran blancos por negros.
 		"""
 	)
-	async def showascii(self, ctx, id:int, reverse:typing.Optional[str]=""):
+	async def showascii(self, ctx, id:int, reverse:Optional[str]):
 		message = await ctx.fetch_message(id) 
 		# check if message has attachments
 		if len(message.attachments) == 0:
@@ -210,11 +179,8 @@ class MemeCommands(commands.Cog):
 	)
 	async def simon(self, ctx, *text):
 		print(text)
-		# the coordinates of the upper left corner of the rectangel
-		# where the text will be
-		coords = (365, 1350)
-		# the dimensions of the rectangle where the text will be
-		dims = (230, 125)
+		coords = (365, 1350) # the coordinates of the upper left corner of the rectangle where the text will be
+		dims = (230, 125) # the dimensions of the rectangle where the text will be
 		# convert the args array into a string and stuff for teh default argument
 		# because  I don't want to add "" in the command
 		if (text != ()):

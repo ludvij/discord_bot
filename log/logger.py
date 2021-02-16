@@ -1,4 +1,7 @@
 
+#! Wip, just a placeholder
+#TODO: make this a proper thing
+
 def confirm(msg, tablevel=0):
 	tabs = get_tabs(tablevel)
 	print(f"{tabs}{logcolors.OKGREEN}[CONFIRM]: {msg}{logcolors.ENDC}")

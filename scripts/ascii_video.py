@@ -90,24 +90,14 @@ def main():
 	# check if size is specified
 	width = int(argv[2]) if len(argv) > 2 else 0
 	height = int(argv[3]) if len(argv) > 3 else 0
-	gen = video_to_ascii(argv[1], pwidth=width, pheight=height)
-	res = ""
-	while True:
-		while res != False:
-			res = next(gen, False)
-			print(f'\033[H{res}')
-		# do while emulation
-		if not loop: 
-			break
+	[print(frame) for frame in video_to_ascii(argv[1], pwidth=width, pheight=height)]
 
 
 # generator for the bot
 async def process(vid_path:str, pwidth:int, pheight:int):
 	gen = video_to_ascii(vid_path, pwidth=pwidth, pheight=pheight, discord=True, reverse=True)
-	res = next(gen, False)
-	while res != False:
-		yield res
-		res = next(gen, False)
+	for res in gen:
+		yield next(gen, False)
 
 
 

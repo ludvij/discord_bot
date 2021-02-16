@@ -34,7 +34,7 @@ class RadioConnect(commands.Cog):
 		El uso general es para escuchar la radio.
 		"""
 	)
-	async def playradio(self, ctx, url = "http://radio3.rtveradio.cires21.com/radio3.mp3"):
+	async def playradio(self, ctx, url:str = "http://radio3.rtveradio.cires21.com/radio3.mp3"):
 		voice = get(ctx.bot.voice_clients, guild=ctx.guild)
 
 		if ctx.author.voice == None:
