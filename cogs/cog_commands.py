@@ -51,6 +51,31 @@ class Commands(commands.Cog):
 		else:
 			await ctx.send(user.avatar_url_as(format='png'))
 
+	# @commands.command(aliases=['chco'])
+	# async def changeColor(self, ctx, colour):
+	# 	colour = int(colour, 16)
+	# 	if (colour > 0xffffff):
+	# 		raise Exception("Invalid colour")
+	# 	user = ctx.author
+	# 	r_name = f'colour_{user}'
+	# 	c_role = None
+	# 	for r in user.roles:
+	# 		if r.name == r_name: 
+	# 			c_role = r		
+	# 	if c_role == None:
+	# 		for r in ctx.guild.roles:
+	# 			if r.name == r_name:
+	# 				c_role = r
+	# 		if c_role == None:
+	# 			c_role = await ctx.guild.create_role(name=r_name, colour=colour, mentionable=False)
+	# 			pos = len(ctx.guild.roles) - 2
+	# 			await c_role.edit(position=pos)
+	# 		await user.add_roles(c_role)
+	# 	else:
+	# 		await c_role.edit(colour=colour)
+
+
+
 	# command to delete a specified number of commands in a text channel
 	# or betwen two commands
 	@commands.command(
@@ -178,7 +203,7 @@ class MemeCommands(commands.Cog):
 	# the image Simón meme image
 	@commands.command(
 		aliases=["Simón, Simon"],
-		help="coge la foto de simon y modifica el texto a el parametro"
+		help="Coge la foto de simon y modifica el texto a el parametro"
 	)
 	async def simon(self, ctx, *text):
 		print(text)
@@ -198,3 +223,25 @@ class MemeCommands(commands.Cog):
 
 		await ctx.send(text, file=discord.File(out_path))
 		remove(out_path)
+
+	@commands.command(
+		help="""
+		Respondes a un mensaje y devuelve un mensaje cambiando todas las vocales por i
+		"""
+	)
+	async def mimimi(self, ctx):#, opt:Optional[str]):
+		msg = ctx.message.reference.resolved.content
+		msg = msg.translate({ord(c): 'I' for c in 'AEOU'})
+		msg = msg.translate({ord(c): 'Í' for c in 'ÁÉÓÚ'})
+		msg = msg.translate({ord(c): 'Ì' for c in 'ÀÈÒÙ'})
+		msg = msg.translate({ord(c): 'Ï' for c in 'ÄËÖÜ'})
+		msg = msg.translate({ord(c): 'Î' for c in 'ÂÊÔÛ'})
+		msg = msg.translate({ord(c): 'i' for c in 'aeou'})
+		msg = msg.translate({ord(c): 'í' for c in 'áéóú'})
+		msg = msg.translate({ord(c): 'ì' for c in 'àèòù'})
+		msg = msg.translate({ord(c): 'ï' for c in 'äëöü'})
+		msg = msg.translate({ord(c): 'î' for c in 'âêôû'})
+		# if opt == 'tts':
+		# 	msg = '/tts ' + msg
+		await ctx.send(msg)
+
