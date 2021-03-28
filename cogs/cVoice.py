@@ -7,22 +7,22 @@ import log.logger as log
 def setup(bot):
 	log.warn(f"Loading extension: {__name__}")
 
-	bot.add_cog(GeneralVoice())
-	log.notice("Loaded cog: GeneralVoice",1)
-	bot.add_cog(RadioConnect())
-	log.notice("Loaded cog: RadioConnect",1)
+	bot.add_cog(General_voice())
+	log.notice("Loaded cog: General_voice",1)
+	bot.add_cog(Radio_connect())
+	log.notice("Loaded cog: Radio_connect",1)
 
 	log.confirm(f"Loaded extension: {__name__}")
 
 def teardown(bot):
 	log.warn(f"Unloading extension: {__name__}")
 
-	log.notice("Unloaded cog: GeneralVoice",1)
-	log.notice(f"Unloaded cog: RadioConnect",1)
+	log.notice("Unloaded cog: General_voice",1)
+	log.notice(f"Unloaded cog: Radio_connect",1)
 	
 	log.confirm(f"Unloaded extension: {__name__}")
 
-class RadioConnect(commands.Cog):
+class Radio_connect(commands.Cog):
 	def __init__(self):
 		pass
 
@@ -55,7 +55,7 @@ class RadioConnect(commands.Cog):
 		
 
 # This Cog has the most common voice commands
-class GeneralVoice(commands.Cog):
+class General_voice(commands.Cog):
 	def __init__(self):
 		pass
 

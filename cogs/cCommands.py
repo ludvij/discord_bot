@@ -16,20 +16,59 @@ from scripts import ascii_video
 def setup(bot):
 	log.warn(f"Loading extension: {__name__}")
 
-	bot.add_cog(MemeCommands())
-	log.notice("Loaded cog: MemeCommands",1)
+	bot.add_cog(Moderation_Commands())
+	log.notice("Loaded cog: Moderation_commands",1)
 	bot.add_cog(Commands())
 	log.notice("Loaded cog: Commands",1)
+	bot.add_cog(Meme_commands())
+	log.notice("Loaded cog: Meme_commands",1)
 
 	log.confirm(f"Loaded extension: {__name__}")
 
 def teardown(bot):
 	log.warn(f"Unloading extension: {__name__}")
 
-	log.notice("Unloaded cog: MemeCommands",1)
+	log.notice("Unloaded cog: Meme_commands",1)
 	log.notice("Unloaded cog: Commands",1)
+	log.notice("Unloaded cog: Moderation_commands",1)
 	
 	log.confirm(f"Unloaded extension: {__name__}")
+
+
+class Moderation_Commands(commands.Cog):
+	def __init__(self):
+		pass
+	# command to delete a specified number of commands in a text channel
+	# or betwen two commands
+	@commands.command(
+		name='clear',
+		help=
+		"""
+		Si se pasa solo un argument el bot borrará x mensaje en el canal del comando.
+		Si se pasan dos argumentos, ambos tienen que ser ids de mensajes del mismo canal, 
+		el bot borrará todos los mensajes entre ellos, ellos incluidos.
+		Solo puede utilizarse por admins.
+		"""
+	)
+	@commands.has_role('admin')
+	async def bulk_delete(self, ctx, n_or_m1:Union[commands.MessageConverter, int], m2:commands.MessageConverter=None):
+		await ctx.message.delete()
+		if m2 == None:
+			n = n_or_m1 
+			channel = ctx.channel		
+			log.notice(f"Deleting {n} messages in [{channel.guild}:{channel}]")
+			# A better way of bulk deleting since the older one was quite slow
+			await channel.purge(limit=n)
+		else:
+			m1 = n_or_m1
+			if m1.channel != m2.channel:
+				raise commands.CommandError(f"msg {m1.channel}:{m1.id} and msg {m2.channel}:{m2.id} are not in the same channel")
+			if m1.created_at > m2.created_at:
+				m1, m2 = m2, m1
+		
+			log.notice(f"removing from {m1.id}:{m1.created_at} to {m2.id}:{m2.created_at}")
+			await ctx.channel.purge(before=m2.created_at + timedelta(0,1), after=m1.created_at - timedelta(0,1))
+		log.confirm("Finished bulk deletion", 1)
 
 
 class Commands(commands.Cog):
@@ -38,7 +77,8 @@ class Commands(commands.Cog):
 
 	@commands.command(
 		aliases=['pfp'],
-		help="""
+		help=
+		"""
 		Muestra la imagen del usuario al que se ha mencionado.
 		Si no se menciona a nadie se muestra la de la persona que invocó el comando.
 		"""
@@ -75,39 +115,7 @@ class Commands(commands.Cog):
 	# 		await c_role.edit(colour=colour)
 
 
-
-	# command to delete a specified number of commands in a text channel
-	# or betwen two commands
-	@commands.command(
-		name='clear',
-		help="""
-		Si se pasa solo un argument el bot borrará x mensaje en el canal del comando.
-		Si se pasan dos argumentos, ambos tienen que ser ids de mensajes del mismo canal, 
-		el bot borrará todos los mensajes entre ellos, ellos incluidos.
-		Solo puede utilizarse por admins.
-		"""
-	)
-	@commands.has_role('admin')
-	async def bulk_delete(self, ctx, n_or_m1:Union[commands.MessageConverter, int], m2:commands.MessageConverter=None):
-		await ctx.message.delete()
-		if m2 == None:
-			n = n_or_m1 
-			channel = ctx.channel		
-			log.notice(f"Deleting {n} messages in [{channel.guild}:{channel}]")
-			# A better way of bulk deleting since the older one was quite slow
-			await channel.purge(limit=n)
-		else:
-			m1 = n_or_m1
-			if m1.channel != m2.channel:
-				raise commands.CommandError(f"msg {m1.channel}:{m1.id} and msg {m2.channel}:{m2.id} are not in the same channel")
-			if m1.created_at > m2.created_at:
-				m1, m2 = m2, m1
-		
-			log.notice(f"removing from {m1.id}:{m1.created_at} to {m2.id}:{m2.created_at}")
-			await ctx.channel.purge(before=m2.created_at + timedelta(0,1), after=m1.created_at - timedelta(0,1))
-		log.confirm("Finished bulk deletion", 1)
-
-class MemeCommands(commands.Cog):
+class Meme_commands(commands.Cog):
 	def __init__(self):
 		pass
 
@@ -167,7 +175,8 @@ class MemeCommands(commands.Cog):
 
 	@commands.command(
 		aliases=['showa'],
-		help="""
+		help=
+		"""
 		Convierte una imagen a ASCII, se tiene que pasar la id
 		del mensaje que tiene la imagen para convertirse a ASCII.
 		Devuelve el resultado como un .txt.
@@ -225,7 +234,8 @@ class MemeCommands(commands.Cog):
 		remove(out_path)
 
 	@commands.command(
-		help="""
+		help=
+		"""
 		Respondes a un mensaje y devuelve un mensaje cambiando todas las vocales por i
 		"""
 	)

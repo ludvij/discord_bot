@@ -2,10 +2,10 @@ from discord.ext import commands
 import log.logger as log
 
 def setup(bot):
-	log.warn(f"Unloading extension: {__name__}")
+	log.warn(f"Loading extension: {__name__}")
 	bot.add_cog(Listeners(bot))
-	log.notice(f"Unloaded cog: Listeners",1)
-	log.confirm(f"Unloaded extension: {__name__}")
+	log.notice(f"Loaded cog: Listeners",1)
+	log.confirm(f"Loaded extension: {__name__}")
 
 def teardown(bot):
 	log.warn(f"Unloading extension: {__name__}")

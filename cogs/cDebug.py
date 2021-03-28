@@ -5,7 +5,7 @@ import log.logger as log
 #! DEBUG STUFF
 # This Cog is used to manage extensions without stopping the bot
 # This Cog can only be used by the owner of the bot
-class ExtensionManager(commands.Cog):
+class Debug_commands(commands.Cog):
 	def __init__(self):
 		pass
 
