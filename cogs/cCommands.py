@@ -91,6 +91,17 @@ class Commands(commands.Cog):
 		else:
 			await ctx.send(user.avatar_url_as(format='png'))
 
+	@commands.is_owner()
+	@commands.command(
+		aliases=['chac'],
+		help=
+		"""
+		Cambia el estado del bot, solo lo puede usar el dueño, que os jodan.
+		"""
+	)
+	async def change_activity(self, ctx, *activity):
+		await ctx.bot.change_presence(activity=discord.Game(' '.join(activity)))
+
 	# @commands.command(aliases=['chco'])
 	# async def changeColor(self, ctx, colour):
 	# 	colour = int(colour, 16)

@@ -14,6 +14,7 @@ class Debug_commands(commands.Cog):
 	@commands.is_owner()
 	async def _kill(self, ctx):
 		log.warn("The bot is logging out")
+		await ctx.message.delete()
 		await ctx.bot.close()
 
 	# loads a new extension in the bot, a extension is a py module with a 
@@ -24,7 +25,8 @@ class Debug_commands(commands.Cog):
 	async def _load(self, ctx, module : str):
 		if module in ctx.bot.extensions:
 			log.warn(f"Extension: {module} is loaded")
-			return;
+			return
+		await ctx.message.delete()
 		ctx.bot.load_extension(module)
 
 	# unloads an extension from the bot
@@ -34,7 +36,8 @@ class Debug_commands(commands.Cog):
 	async def _unload(self, ctx, module : str):
 		if module not in ctx.bot.extensions:
 			log.error(f"Extension: {module} is not loaded")
-			return;
+			return
+		await ctx.message.delete()
 		ctx.bot.unload_extension(module)
 
 
@@ -45,11 +48,13 @@ class Debug_commands(commands.Cog):
 		log.warn("Reloading:")
 		for s in ctx.bot.extensions:
 			ctx.bot.reload_extension(s)
-		#await ctx.send(f"Reload ended")
+		await ctx.message.delete()
 		
 	@commands.command(hidden=True)
 	@commands.is_owner()
 	async def _cogs(self, ctx):
 		printable_out = [''.join(x) for x in ctx.bot.cogs]
+		await ctx.message.delete()
 		for i in printable_out:
-			log.log(f"{i}")
+			log.internal(f"{i}")
+		

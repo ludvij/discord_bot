@@ -18,9 +18,17 @@ class Bot(commands.Bot):
 	def __init__(self):
 		# set the rpefix to PREFIX insede the .env
 		# or just mention the code
-		super().__init__(command_prefix=commands.when_mentioned_or(getenv("PREFIX")), intents=discord.Intents.all())
+		super().__init__(
+			command_prefix=commands.when_mentioned_or(getenv("PREFIX")), 
+			intents=discord.Intents.all()
+		)
 
 		self.add_cog(cDebug.Debug_commands())
+
+	# When the bot is ready to use it says hello in the command
+	async def on_ready(self):
+		log.log(f"Bot logged in as {self.user.name}")
+		await self.change_presence(activity=discord.Game('Gamin\''))
 
 		
 	def init_extensions(self, extension_list):

@@ -22,6 +22,10 @@ def log(msg, tablevel=1):
 	tabs = get_tabs(tablevel)
 	print(f"{tabs}[LOG]: {msg}")
 
+def internal(msg, tablevel=1):
+	tabs = get_tabs(tablevel)
+	print(f'{tabs}{logcolors.OKBLUE}[INTERNAL]: {msg}{logcolors.ENDC}')
+
 
 def get_tabs(n : int):
 	return '\t' * n
