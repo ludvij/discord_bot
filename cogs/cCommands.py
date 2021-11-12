@@ -11,6 +11,7 @@ import log.logger as log
 # scripts
 from scripts import image_text
 from scripts import ascii_video
+from scripts.mid_point import middle_point
 
 
 def setup(bot):
@@ -134,9 +135,25 @@ class Meme_commands(commands.Cog):
 	@commands.command(
 		help="menciona a los jugadores del lol"
 	)
-	async def lol(self, ctx):
+	async def lol(self, ctx, *message:Optional[str]):
 		img = discord.File(getenv("IMG_SUMMON"))
+		await ctx.message.delete()
 		await ctx.send(getenv("MENTION_LOL"), file=img) 
+		if message != None:
+			await ctx.send(" ".join(message))
+
+	@commands.command(
+		aliases=['mid'],
+		help="consigue el punto medio entre un grupo de gente"
+	)
+	async def mid_point(self, ctx, *users):
+		if len(users) == 0:
+			raise commands.CommandError(message='aquí falta gente')
+		try:
+			result = middle_point.get_mid_point(users)
+			await ctx.send(result)
+		except AttributeError:
+			await ctx.send("no hay ningún punto suficientemente cerca")
 
 
 	#? should I move the ydl thing to a function later ?
@@ -146,6 +163,7 @@ class Meme_commands(commands.Cog):
 		Convierte un video a ASCII
 		"""
 	)
+	@commands.is_owner()
 	async def showvideo(self, ctx, URL:str):
 		# stuff to download the video
 		# no audio, worst quality possible
@@ -189,12 +207,16 @@ class Meme_commands(commands.Cog):
 		help=
 		"""
 		Convierte una imagen a ASCII, se tiene que pasar la id
-		del mensaje que tiene la imagen para convertirse a ASCII.
+		del mensaje que tiene la imagen o bien responder al mismo para convertirse a ASCII.
 		Devuelve el resultado como un .txt.
 		Si se añade reverse al final se invertiran blancos por negros.
 		"""
 	)
-	async def showascii(self, ctx, message:commands.MessageConverter, reverse:Optional[str]):
+	async def showascii(self, ctx, reverse:Optional[str], message:Optional[commands.MessageConverter]):
+		if (message == None):
+			if ref := ctx.message.reference == None:
+				raise commands.CommandError(message='If the message param is missing the command should be called responding to a message')
+			message = ref.resolved
 		# check if message has attachments
 		if len(message.attachments) == 0:
 			raise commands.CommandError(message=f"Message {message.id} doesn't have attachments")
