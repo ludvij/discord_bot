@@ -22,7 +22,10 @@ def log(msg, tablevel=1):
 	tabs = get_tabs(tablevel)
 	print(f"{tabs}[LOG]: {msg}")
 
-def internal(msg, tablevel=1):
+	with open ('log/log.log', 'a', encoding='utf-8') as f:
+		f.write(msg +'\n')
+
+def internal(msg, tablevel=0):
 	tabs = get_tabs(tablevel)
 	print(f'{tabs}{logcolors.OKBLUE}[INTERNAL]: {msg}{logcolors.ENDC}')
 

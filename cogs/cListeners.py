@@ -26,5 +26,5 @@ class Listeners(commands.Cog):
 		channel = message.channel
 		time = message.created_at
 
-		text = f"\t[{guild}::{channel}] {author} said: [{content}] at {time}"
+		text = f"[{guild}::{channel}] {author}: [{content}] at {time}"
 		log.log(text)

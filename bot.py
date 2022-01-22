@@ -27,7 +27,7 @@ class Bot(commands.Bot):
 
 	# When the bot is ready to use it says hello in the command
 	async def on_ready(self):
-		log.log(f"Bot logged in as {self.user.name}")
+		log.internal(f"Bot logged in as {self.user.name}")
 		await self.change_presence(activity=discord.Game('Gamin\''))
 
 		
